@@ -73,7 +73,7 @@ MonoBehaviour:
     subMenu: {fileID: 0}
     subParameters: []
     labels: []
-  - name: Mannrobics A
+  - name: Jack-O
     icon: {fileID: 0}
     type: 102
     parameter:

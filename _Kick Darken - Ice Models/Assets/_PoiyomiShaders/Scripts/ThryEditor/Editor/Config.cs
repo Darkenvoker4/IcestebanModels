@@ -16,7 +16,7 @@ namespace Thry
     {
         // consts
         private const string PATH_CONFIG_FILE = "Thry/Config.json";
-        private const string VERSION = "2.27.6";
+        private const string VERSION = "2.39.1";
 
         // static
         private static Config config;
@@ -79,12 +79,14 @@ namespace Thry
         public HumanBodyBones humanBoneAnchor = HumanBodyBones.Spine;
         public string anchorOverrideObjectName = "AutoAnchorObject";
         public bool autoSetAnchorAskedOnce = false;
+        public bool enableDeveloperMode = false;
+        public bool forceAsyncCompilationPreview = true;
 
         public string verion = VERSION;
 
         public Config Save()
         {
-            FileHelper.WriteStringToFile(JsonUtility.ToJson(this), PATH_CONFIG_FILE);
+            FileHelper.WriteStringToFile(JsonUtility.ToJson(this, true), PATH_CONFIG_FILE);
             return this;
         }
 

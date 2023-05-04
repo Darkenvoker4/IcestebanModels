@@ -17,111 +17,174 @@ MonoBehaviour:
     valueType: 0
     saved: 1
     defaultValue: 0
+    networkSynced: 1
   - name: ExpressionHorizontal
     valueType: 1
     saved: 1
     defaultValue: 0
+    networkSynced: 1
   - name: ExpressionVertical
     valueType: 1
     saved: 1
     defaultValue: 0
+    networkSynced: 1
   - name: EyesClosed
     valueType: 1
     saved: 1
     defaultValue: 0
+    networkSynced: 1
   - name: Blush
     valueType: 2
     saved: 1
     defaultValue: 0
+    networkSynced: 1
   - name: TailToggle
     valueType: 0
     saved: 1
     defaultValue: 0
+    networkSynced: 1
   - name: TailHorizontal
     valueType: 1
     saved: 0
     defaultValue: 0
+    networkSynced: 1
   - name: TailVertical
     valueType: 1
     saved: 0
     defaultValue: 0
+    networkSynced: 1
   - name: ClothesType
     valueType: 0
     saved: 1
     defaultValue: 0
+    networkSynced: 1
   - name: VRCEmote
     valueType: 0
     saved: 1
     defaultValue: 0
+    networkSynced: 1
   - name: GunToggle
     valueType: 0
     saved: 1
     defaultValue: 0
+    networkSynced: 1
   - name: SittingAnim
     valueType: 0
     saved: 1
     defaultValue: 0
+    networkSynced: 1
   - name: PoseSpace
     valueType: 2
     saved: 1
     defaultValue: 0
+    networkSynced: 1
   - name: PlaySpace
     valueType: 1
     saved: 1
     defaultValue: 0
+    networkSynced: 1
   - name: ResetPose
     valueType: 2
     saved: 0
     defaultValue: 0
+    networkSynced: 1
   - name: Locomotion
     valueType: 2
     saved: 0
     defaultValue: 0
+    networkSynced: 1
   - name: ShaggyMode
     valueType: 0
     saved: 0
     defaultValue: 0
-  - name: PPToggle
-    valueType: 0
-    saved: 0
-    defaultValue: 0
+    networkSynced: 1
   - name: TopHatJones
     valueType: 0
     saved: 0
     defaultValue: 0
+    networkSynced: 1
   - name: DinoEyes
     valueType: 0
     saved: 0
     defaultValue: 0
+    networkSynced: 1
   - name: HorsesAss
     valueType: 0
     saved: 0
     defaultValue: 0
+    networkSynced: 1
   - name: LeashToggle
     valueType: 0
     saved: 0
     defaultValue: 0
+    networkSynced: 1
   - name: GimpSuit
     valueType: 0
     saved: 0
     defaultValue: 0
+    networkSynced: 1
   - name: MusicObj
     valueType: 0
     saved: 0
     defaultValue: 0
+    networkSynced: 1
   - name: CoffeeLmao
     valueType: 0
     saved: 0
     defaultValue: 0
+    networkSynced: 1
   - name: Clothes2
     valueType: 0
     saved: 1
     defaultValue: 0
+    networkSynced: 1
   - name: NipplePiercings
     valueType: 0
     saved: 1
     defaultValue: 0
+    networkSynced: 1
   - name: Shades
     valueType: 0
     saved: 1
     defaultValue: 0
+    networkSynced: 1
+  - name: Dick
+    valueType: 1
+    saved: 0
+    defaultValue: 0
+    networkSynced: 1
+  - name: Dick Size
+    valueType: 1
+    saved: 1
+    defaultValue: 0.5
+    networkSynced: 1
+  - name: Ball Size
+    valueType: 1
+    saved: 1
+    defaultValue: 0.25
+    networkSynced: 1
+  - name: Update Ball Colliders
+    valueType: 2
+    saved: 1
+    defaultValue: 0
+    networkSynced: 1
+  - name: Dick Interaction
+    valueType: 2
+    saved: 1
+    defaultValue: 0
+    networkSynced: 1
+  - name: Bunny Hue
+    valueType: 1
+    saved: 1
+    defaultValue: 0
+    networkSynced: 1
+  - name: Bunny Colour
+    valueType: 2
+    saved: 1
+    defaultValue: 0
+    networkSynced: 1
+  - name: DPS Toggles
+    valueType: 0
+    saved: 1
+    defaultValue: 0
+    networkSynced: 1

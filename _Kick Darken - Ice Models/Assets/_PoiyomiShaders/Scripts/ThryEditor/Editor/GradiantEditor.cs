@@ -19,6 +19,7 @@ namespace Thry
             texture_settings_data = LoadTextureSettings(prop, predefinedTextureSettings, force_texture_options);
             data.Gradient = TextureHelper.GetGradient(prop.textureValue);
             GradientEditor window = (GradientEditor)EditorWindow.GetWindow(typeof(GradientEditor));
+            window.titleContent = new GUIContent("Gradient '" +prop.name +"' of '"+ prop.targets[0].name + "'");
             window.privious_preview_texture = prop.textureValue;
             window.prop = prop;
             window.data = data;
@@ -51,7 +52,7 @@ namespace Thry
                 return predefinedTextureSettings;
             string json_texture_settings = FileHelper.LoadValueFromFile("gradient_texture_options_"+prop.name, PATH.PERSISTENT_DATA);
             if (json_texture_settings != null)
-                return Parser.ParseToObject<TextureData>(json_texture_settings);
+                return Parser.Deserialize<TextureData>(json_texture_settings);
             else if (predefinedTextureSettings != null)
                 return predefinedTextureSettings;
             else

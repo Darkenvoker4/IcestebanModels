@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -20,22 +21,15 @@ namespace Thry
         public const string DELETING_DIR = "Thry/trash";
 
         public const string PERSISTENT_DATA = "Thry/persistent_data";
-        public const string AFTER_COMPILE_DATA = "Thry/after_compile_data";
-        public const string MATERIALS_BACKUP_FILE = "Thry/materialsBackup";
-        public const string THRY_EDITOR_SHADERS = "Thry/shaders";
 
         public const string GRADIENT_INFO_FILE = "Thry/gradients";
-        public const string TEXT_INFO_FILE = "Thry/text_textures";
-        public const string MODULES_LOCATION__DATA = "Thry/modules_location_data";
 
         public const string LINKED_MATERIALS_FILE = "Thry/linked_materials.json";
-
-        public const string TEMP_VRC_SDK_PACKAGE = "./vrc_sdk_package.unitypackage";
     }
 
     public class URL
     {
-        public const string MODULE_COLLECTION = "https://raw.githubusercontent.com/Thryrallo/ThryEditorStreamedResources/main/modules.json";
+        public const string MODULE_COLLECTION = "https://raw.githubusercontent.com/Thryrallo/ThryEditorStreamedResources/main/packages.json";
         public const string SETTINGS_MESSAGE_URL = "https://raw.githubusercontent.com/Thryrallo/ThryEditorStreamedResources/main/Messages/settingsWindow.json";
         public const string COUNT_PROJECT = "http://thryeditor.thryrallo.de/count_project.php";
         public const string COUNT_USER = "http://thryeditor.thryrallo.de/count_user.php";
@@ -46,11 +40,11 @@ namespace Thry
         public const string IMAGING_EXISTS = "IMAGING_DLL_EXISTS";
     }
 
-    public class RESOURCE_NAME
+    public class RESOURCE_GUID
     {
-        public const string RECT = "thry_rect";
-        public const string ICON_NAME_LINK = "thryEditor_link";
-        public const string ICON_NAME_THRY = "thryEditor_iconThry";
+        public const string RECT = "2329f8696fd09a743a5baf2a5f4986af";
+        public const string ICON_LINK = "e85fd0a0e4e4fea46bb3fdeab5c3fb07";
+        public const string ICON_THRY = "693aa4c2cdc578346a196469a06ddbba";
     }
     #endregion
 
@@ -90,7 +84,7 @@ namespace Thry
 
     public enum DrawerType
     {
-        None, Header
+        None
     }
 
     public class GradientData
@@ -101,7 +95,7 @@ namespace Thry
 
     public enum TextureDisplayType
     {
-        small, big, stylized_big
+        small, big, big_basic
     }
 
     //--------------Shader Data Structs--------------------
@@ -109,7 +103,6 @@ namespace Thry
     #region In Shader Data
     public class PropertyOptions
     {
-        public int offset = 0;
         public string tooltip = "";
         public DefineableAction altClick;
         public DefineableAction onClick;
@@ -124,11 +117,29 @@ namespace Thry
         public string[] reference_properties;
         public string reference_property;
         public bool force_texture_options = false;
-        public bool hide_in_inspector = false;
         public bool is_visible_simple = false;
         public string file_name;
         public string remote_version_url;
         public string generic_string;
+        public bool never_lock;
+
+        public static PropertyOptions Deserialize(string s)
+        {
+            if(s == null) return new PropertyOptions();
+            s = s.Replace("''", "\"");
+            PropertyOptions options = Parser.Deserialize<PropertyOptions>(s);
+            if (options == null) return new PropertyOptions();
+            // The following could be removed since the parser can now handle it. leaving it in for now /shrug
+            if (options.condition_showS != null)
+            {
+                options.condition_show = DefineableCondition.Parse(options.condition_showS);
+            }
+            if (options.on_value != null)
+            {
+                options.on_value_actions = PropertyValueAction.ParseToArray(options.on_value);
+            }
+            return options;
+        }
     }
 
     public class ButtonData
@@ -144,6 +155,7 @@ namespace Thry
     public class TextureData
     {
         public string name = null;
+        public string guid = null;
         public int width = 128;
         public int height = 128;
 
@@ -175,35 +187,47 @@ namespace Thry
         {
             get
             {
-                if(!s_loaded_textures.ContainsKey(name) || s_loaded_textures[name] == null)
+                if(guid != null)
                 {
-                    if(IsUrl())
+                    if(!s_loaded_textures.ContainsKey(guid) || s_loaded_textures[guid] == null)
                     {
-                        if(!_isLoading)
-                        {
-                            WebHelper.DownloadBytesASync(name, (byte[] b) =>
-                            {
-                                _isLoading = false;
-                                Texture2D tex = new Texture2D(1,1, TextureFormat.ARGB32, false);
-                                ImageConversion.LoadImage(tex, b, false);
-                                s_loaded_textures[name] = tex;
-                            });
-                            _isLoading = true;
-                        }
-                    }else
-                    {
-                        string path = FileHelper.FindFile(name, "texture");
+                        string path = AssetDatabase.GUIDToAssetPath(guid);
                         if (path != null)
-                            s_loaded_textures[name] = AssetDatabase.LoadAssetAtPath<Texture>(path);
+                            s_loaded_textures[guid] = AssetDatabase.LoadAssetAtPath<Texture>(path);
                         else
-                            s_loaded_textures[name] = new Texture2D(1, 1);
+                            s_loaded_textures[guid] = Texture2D.whiteTexture;
                     }
-                    if(!s_loaded_textures.ContainsKey(name))
+                    return s_loaded_textures[guid];
+                }else if(name != null)
+                {
+                    if(!s_loaded_textures.ContainsKey(name) || s_loaded_textures[name] == null)
                     {
-                        return null;
+                        if(IsUrl())
+                        {
+                            if(!_isLoading)
+                            {
+                                s_loaded_textures[name] = Texture2D.whiteTexture;
+                                WebHelper.DownloadBytesASync(name, (byte[] b) =>
+                                {
+                                    _isLoading = false;
+                                    Texture2D tex = new Texture2D(1,1, TextureFormat.ARGB32, false);
+                                    ImageConversion.LoadImage(tex, b, false);
+                                    s_loaded_textures[name] = tex;
+                                });
+                                _isLoading = true;
+                            }
+                        }else
+                        {
+                            string path = FileHelper.FindFile(name, "texture");
+                            if (path != null)
+                                s_loaded_textures[name] = AssetDatabase.LoadAssetAtPath<Texture>(path);
+                            else
+                                s_loaded_textures[name] = Texture2D.whiteTexture;
+                        }
                     }
+                    return s_loaded_textures[name];
                 }
-                return s_loaded_textures[name];
+                return Texture2D.whiteTexture;
             }
         }
 
@@ -216,7 +240,7 @@ namespace Thry
                     name = s
                 };
             }
-            return Parser.ParseToObject<TextureData>(s);
+            return Parser.Deserialize<TextureData>(s);
         }
 
         bool IsUrl()
@@ -241,7 +265,7 @@ namespace Thry
                 (p.type == MaterialProperty.PropType.Texture && ((p.textureValue != null) == (value == "1"))) ||
                 (p.type == MaterialProperty.PropType.Texture && (p.textureValue != null && p.textureValue.name == value)) 
             )
-                {
+                {;
                 foreach (DefineableAction a in actions)
                     a.Perform(targets);
                 return true;
@@ -258,15 +282,18 @@ namespace Thry
         public static PropertyValueAction Parse(string s)
         {
             s = s.Trim();
-            string[] parts = s.Split(',');
-            if (parts.Length > 0)
+            string[] valueAndActions = s.Split(new string[]{"=>"}, System.StringSplitOptions.RemoveEmptyEntries);
+            if (valueAndActions.Length > 1)
             {
                 PropertyValueAction propaction = new PropertyValueAction();
-                propaction.value = parts[0];
+                propaction.value = valueAndActions[0];
                 List<DefineableAction> actions = new List<DefineableAction>();
-                for (int i = 1; i < parts.Length; i++)
+                string[] actionStrings = valueAndActions[1].Split(';');
+                for (int i = 0; i < actionStrings.Length; i++)
                 {
-                    actions.Add(DefineableAction.Parse(parts[i]));
+                    if(string.IsNullOrWhiteSpace(actionStrings[i]))
+                        continue;
+                    actions.Add(DefineableAction.Parse(actionStrings[i]));
                 }
                 propaction.actions = actions.ToArray();
                 return propaction;
@@ -281,10 +308,10 @@ namespace Thry
 
         public static PropertyValueAction[] ParseToArray(string s)
         {
-            //s = v,p1=v1,p2=v2;v3
+            //s := 0=>p1=v1;p2=v2;1=>p1=v3...
             List<PropertyValueAction> propactions = new List<PropertyValueAction>();
-            string[] parts = s.Split(';');
-            foreach (string p in parts)
+            string[] valueAndActionMatches = Regex.Matches(s, @"[^;]+=>.+?(?=(;[^;]+=>)|$)", RegexOptions.Multiline).Cast<Match>().Select(m => m.Value).ToArray();
+            foreach (string p in valueAndActionMatches)
             {
                 PropertyValueAction propertyValueAction = PropertyValueAction.Parse(p);
                 if (propertyValueAction != null)
@@ -438,8 +465,8 @@ namespace Thry
                 _compareType = compareType;
 
                 string[] parts = Regex.Split(data, compareString);
-                _obj = parts[0];
-                _value = parts[parts.Length - 1];
+                _obj = parts[0].Trim();
+                _value = parts[parts.Length - 1].Trim();
 
                 _floatValue = Parser.ParseFloat(_value);
                 if (ShaderEditor.Active != null && ShaderEditor.Active.PropertyDictionary.ContainsKey(_obj))
@@ -502,7 +529,7 @@ namespace Thry
                 case DefineableConditionType.TEXTURE_SET:
                     materialProperty = GetMaterialProperty();
                     if (materialProperty == null) return false;
-                    return materialProperty.textureValue != null;
+                    return (materialProperty.textureValue == null) == (_compareType == CompareType.EQUAL);
                 case DefineableConditionType.DROPDOWN:
                     materialProperty = GetMaterialProperty();
                     if (materialProperty == null) return false;
@@ -518,7 +545,10 @@ namespace Thry
                     if(condition1!=null&&condition2!=null) return condition1.Test() && condition2.Test();
                     break;
                 case DefineableConditionType.OR:
-                    if (condition1 != null && condition2 != null) return condition1.Test() || condition2.Test();
+                    if(condition1 != null && condition2 != null) return condition1.Test() || condition2.Test();
+                    break;
+                case DefineableConditionType.NOT:
+                    if(condition1 != null) return !condition1.Test();
                     break;
             }
             
@@ -572,6 +602,9 @@ namespace Thry
                 case DefineableConditionType.OR:
                     if (condition1 != null && condition2 != null) return "("+condition1.ToString()+"||"+condition2.ToString()+")";
                     break;
+                case DefineableConditionType.NOT:
+                    if (condition1 != null) return "!"+condition1.ToString();
+                    break;
             }
             return "";
         }
@@ -582,41 +615,104 @@ namespace Thry
         }
 
         private static readonly char[] ComparissionLiteralsToCheckFor = "*><=".ToCharArray();
-        public static DefineableCondition Parse(string s, Material useThisMaterialInsteadOfOpenEditor = null)
+        public static DefineableCondition Parse(string s, Material useThisMaterialInsteadOfOpenEditor = null, int start = 0, int end = -1)
         {
-            DefineableCondition con = new DefineableCondition();
-            con._materialInsteadOfEditor = useThisMaterialInsteadOfOpenEditor;
+            if(end == -1) end = s.Length;
+            DefineableCondition con;
 
-            s = Strip(s);
+            // Debug.Log("Parsing: " + s.Substring(start, end - start));
 
             int depth = 0;
-            for (int i = 0; i < s.Length - 1; i++)
+            int bracketStart = -1;
+            int bracketEnd = -1;
+            for(int i = start; i < end; i++)
             {
                 char c = s[i];
-                char cc = s[i + 1];
-                if (c == '(')
-                    depth++;
-                else if (c == ')')
-                    depth--;
-
-                if (depth == 0)
+                if(c == '(')
                 {
-                    if (c == '&' && cc == '&')
+                    depth += 1;
+                    if(depth == 1)
                     {
-                        con.type = DefineableConditionType.AND;
-                        con.condition1 = Parse(s.Substring(0, i), useThisMaterialInsteadOfOpenEditor);
-                        con.condition2 = Parse(s.Substring(i + 2, s.Length - i - 2), useThisMaterialInsteadOfOpenEditor);
-                        return con;
+                        bracketStart = i;
                     }
-                    if (c == '|' && cc == '|')
+                }else if(c == ')')
+                {
+                    if(depth == 1)
                     {
+                        bracketEnd = i;
+                    }
+                    depth -= 1;
+                }else if(depth == 0)
+                {
+                    if(c == '&')
+                    {
+                        con = new DefineableCondition();
+                        con._materialInsteadOfEditor = useThisMaterialInsteadOfOpenEditor;
+
+                        con.type = DefineableConditionType.AND;
+                        con.condition1 = Parse(s, useThisMaterialInsteadOfOpenEditor, start, i);
+                        con.condition2 = Parse(s, useThisMaterialInsteadOfOpenEditor, i + (s[i+1] == '&' ? 2 : 1), end);
+                        return con;
+                    }else if(c == '|')
+                    {
+                        
+                        con = new DefineableCondition();
+                        con._materialInsteadOfEditor = useThisMaterialInsteadOfOpenEditor;
+
                         con.type = DefineableConditionType.OR;
-                        con.condition1 = Parse(s.Substring(0, i), useThisMaterialInsteadOfOpenEditor);
-                        con.condition2 = Parse(s.Substring(i + 2, s.Length - i - 2), useThisMaterialInsteadOfOpenEditor);
+                        con.condition1 = Parse(s, useThisMaterialInsteadOfOpenEditor, start, i);
+                        con.condition2 = Parse(s, useThisMaterialInsteadOfOpenEditor, i + (s[i + 1] == '|' ? 2 : 1), end);
                         return con;
                     }
                 }
             }
+
+
+            bool isInverted = IsInverted(s, ref start);
+
+            // if no AND or OR was found, check for brackets
+            if(bracketStart != -1 && bracketEnd != -1)
+            {
+                con = Parse(s, useThisMaterialInsteadOfOpenEditor, bracketStart + 1, bracketEnd);
+            }else
+            {
+                con = ParseSingle(s.Substring(start, end - start), useThisMaterialInsteadOfOpenEditor);
+            }
+
+            if(isInverted)
+            {
+                DefineableCondition inverted = new DefineableCondition();
+                inverted._materialInsteadOfEditor = useThisMaterialInsteadOfOpenEditor;
+                inverted.type = DefineableConditionType.NOT;
+                inverted.condition1 = con;
+                return inverted;
+            }
+
+            return con;
+        }
+
+        static bool IsInverted(string s, ref int start)
+        {
+            for(int i = start; i < s.Length; i++)
+            {
+                if(s[i] == '!')
+                {
+                    start += 1;
+                    return true;
+                }
+                if(s[i] != ' ')
+                    return false;
+            }
+            return false;
+        }
+
+        static DefineableCondition ParseSingle(string s, Material useThisMaterialInsteadOfOpenEditor = null)
+        {
+            // Debug.Log("Parsing single: " + s);
+
+            DefineableCondition con = new DefineableCondition();
+            con._materialInsteadOfEditor = useThisMaterialInsteadOfOpenEditor;
+
             if(s.IndexOfAny(ComparissionLiteralsToCheckFor) != -1)
             {
                 //is a comparission
@@ -630,6 +726,10 @@ namespace Thry
                 {
                     con.type = DefineableConditionType.EDITOR_VERSION;
                     con.data = s.Replace("ThryEditor", "");
+                }else if(IsTextureNullComparission(s, useThisMaterialInsteadOfOpenEditor))
+                {
+                    con.type = DefineableConditionType.TEXTURE_SET;
+                    con.data = s.Replace("TEXTURE_SET", "");
                 }
                 return con;
             }
@@ -648,27 +748,24 @@ namespace Thry
             return con;
         }
 
-        private static string Strip(string s)
+        static bool IsTextureNullComparission(string data, Material useThisMaterialInsteadOfOpenEditor = null)
         {
-            s = s.Trim();
-            if (s.StartsWith("(", StringComparison.Ordinal) == false)
-                return s;
-            bool stripKlammer = true;
-            int depth = 0;
-            int i = 0;
-            foreach (char c in s)
-            {
-                if (c == '(')
-                    depth++;
-                else if (c == ')')
-                    depth--;
-                if (depth == 0 && i != 0 && i != s.Length - 1)
-                    stripKlammer = false;
-                i++;
-            }
-            if (stripKlammer)
-                return Strip(s.Substring(1, s.Length - 2));
-            return s;
+            // Check if property is a texture property && is checking for null
+            Material m = GetReferencedMaterial(useThisMaterialInsteadOfOpenEditor);
+            if( m == null) return false;
+            if(data.Length < 7) return false;
+            if(data.EndsWith("null") == false) return false;
+            string propertyName = data.Substring(0, data.Length - 6);
+            if(m.HasProperty(propertyName) == false) return false;
+            MaterialProperty p = MaterialEditor.GetMaterialProperty(new Material[]{m}, propertyName);
+            return p.type == MaterialProperty.PropType.Texture;
+        }
+
+        static Material GetReferencedMaterial(Material useThisMaterialInsteadOfOpenEditor = null)
+        {
+            if( useThisMaterialInsteadOfOpenEditor != null ) return useThisMaterialInsteadOfOpenEditor;
+            if( ShaderEditor.Active != null ) return ShaderEditor.Active.Materials[0];
+            return null;
         }
     }
 
@@ -687,43 +784,8 @@ namespace Thry
         TEXTURE_SET,
         DROPDOWN,
         AND,
-        OR
-    }
-
-    #endregion
-
-    #region Module Data
-
-    public class Module
-    {
-        public string id;
-        public string url = "";
-        public string author;
-        public string path;
-        public bool is_being_installed_or_removed = false;
-        public bool available_requirement_fullfilled = true;
-        public bool update_available = false;
-        public ModuleLocationData location_data;
-        public ModuleInfo available_module = null;
-        public ModuleInfo installed_module = null;
-        public bool ui_expanded = false;
-    }
-
-    public class ModuleInfo
-    {
-        public string name = "";
-        public string version = "0";
-        public string description = "";
-        public string classname = "";
-        public DefineableCondition requirement;
-        public List<string> files;
-    }
-
-    public class ModuleLocationData
-    {
-        public string guid;
-        public string classname;
-        public string[] files;
+        OR,
+        NOT
     }
 
     #endregion

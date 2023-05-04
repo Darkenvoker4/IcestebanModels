@@ -21,7 +21,7 @@ namespace Thry
 
         public const string PROPERTY_NAME_MASTER_LABEL = "shader_master_label";
         public const string PROPERTY_NAME_LABEL_FILE = "shader_properties_label_file";
-        public const string PROPERTY_NAME_LOCALE = "shader_properties_locale";
+        public const string PROPERTY_NAME_LOCALE = "shader_locale";
         public const string PROPERTY_NAME_ON_SWAP_TO_ACTIONS = "shader_on_swap_to";
         public const string PROPERTY_NAME_SHADER_VERSION = "shader_version";
         public const string PROPERTY_NAME_EDITOR_DETECT = "shader_is_using_thry_editor";
@@ -68,8 +68,10 @@ namespace Thry
         public bool IsInAnimationMode;
         public Renderer ActiveRenderer;
         public string RenamedPropertySuffix;
-        public Locale Locale;
+        public bool HasCustomRenameSuffix;
+        public Localization Locale;
         public ShaderTranslator SuggestedTranslationDefinition;
+        private string _duplicatePropertyNamesString = null;
 
         //Shader Versioning
         private Version _shaderVersionLocal;
@@ -85,6 +87,20 @@ namespace Thry
 
         public bool IsDrawing { get; private set; } = false;
         public bool IsPresetEditor { get; private set; } = false;
+
+        public bool HasMixedCustomPropertySuffix
+        {
+            get
+            {
+                if (Materials.Length == 1) return false;
+                string suffix = ShaderOptimizer.GetRenamedPropertySuffix(Materials[0]);
+                for (int i = 1; i < Materials.Length; i++)
+                {
+                    if (suffix != ShaderOptimizer.GetRenamedPropertySuffix(Materials[i])) return true;
+                }
+                return false;
+            }
+        }
 
         //-------------Init functions--------------------
 
@@ -112,42 +128,26 @@ namespace Thry
             return labels;
         }
 
-        private PropertyOptions ExtractExtraOptionsFromDisplayName(ref string displayName)
+        public static string SplitOptionsFromDisplayName(ref string displayName)
         {
             if (displayName.Contains(EXTRA_OPTIONS_PREFIX))
             {
                 string[] parts = displayName.Split(new string[] { EXTRA_OPTIONS_PREFIX }, 2, System.StringSplitOptions.None);
                 displayName = parts[0];
-                parts[1] = parts[1].Replace("''", "\"");
-                PropertyOptions options = Parser.ParseToObject<PropertyOptions>(parts[1]);
-                if (options != null)
-                {
-                    if (options.condition_showS != null)
-                    {
-                        options.condition_show = DefineableCondition.Parse(options.condition_showS);
-                    }
-                    if (options.on_value != null)
-                    {
-                        options.on_value_actions = PropertyValueAction.ParseToArray(options.on_value);
-                    }
-                    return options;
-                }
+                return parts[1];
             }
-            return new PropertyOptions();
+            return null;
         }
 
         private enum ThryPropertyType
         {
-            none, property, master_label, footer, header, headerWithEnd, legacy_header, legacy_header_end, legacy_header_start, group_start, group_end, instancing, dsgi, lightmap_flags, locale, on_swap_to, space, shader_version
+            none, property, master_label, footer, legacy_header, legacy_header_end, legacy_header_start, group_start, group_end, instancing, dsgi, lightmap_flags, locale, on_swap_to, space, shader_version
         }
 
-        private ThryPropertyType GetPropertyType(MaterialProperty p, PropertyOptions options)
+        private ThryPropertyType GetPropertyType(MaterialProperty p)
         {
             string name = p.name;
             MaterialProperty.PropFlags flags = p.flags;
-
-            if (DrawingData.LastPropertyDrawerType == DrawerType.Header)
-                return (DrawingData.LastPropertyDrawer as ThryHeaderDrawer).GetEndProperty() != null ? ThryPropertyType.headerWithEnd : ThryPropertyType.header;
 
             if (flags == MaterialProperty.PropFlags.HideInInspector)
             {
@@ -183,8 +183,7 @@ namespace Thry
             }
             else if(flags.HasFlag(MaterialProperty.PropFlags.HideInInspector) == false)
             {
-                if (!options.hide_in_inspector)
-                    return ThryPropertyType.property;
+                return ThryPropertyType.property;
             }
             return ThryPropertyType.none;
         }
@@ -195,11 +194,26 @@ namespace Thry
             Locale = null;
             if (locales_property != null)
             {
-                string displayName = locales_property.displayName;
-                PropertyOptions options = ExtractExtraOptionsFromDisplayName(ref displayName);
-                Locale = new Locale(options.file_name);
-                Locale.selected_locale_index = (int)locales_property.floatValue;
+                string guid = locales_property.displayName;
+                Locale = Localization.Load(guid);
+            }else
+            {
+                Locale = Localization.Create();
             }
+        }
+
+        public void FakePartialInitilizationForLocaleGathering(Shader s)
+        {
+            Material material = new Material(s);
+            Materials = new Material[] { material };
+            Editor = MaterialEditor.CreateEditor(new UnityEngine.Object[] { material }) as MaterialEditor;
+            Properties = MaterialEditor.GetMaterialProperties(Materials);
+            RenamedPropertySuffix = ShaderOptimizer.GetRenamedPropertySuffix(Materials[0]);
+            HasCustomRenameSuffix = ShaderOptimizer.HasCustomRenameSuffix(Materials[0]);
+            ShaderEditor.Active = this;
+            CollectAllProperties();
+            UnityEngine.Object.DestroyImmediate(Editor);
+            UnityEngine.Object.DestroyImmediate(material);
         }
 
         //finds all properties and headers and stores them in correct order
@@ -220,6 +234,8 @@ namespace Thry
             int headerCount = 0;
             DrawingData.IsCollectingProperties = true;
 
+            List<string> duplicateProperties = new List<string>(); // for debugging
+
             for (int i = 0; i < props.Length; i++)
             {
                 string displayName = props[i].displayName;
@@ -227,44 +243,30 @@ namespace Thry
                 //Load from label file
                 if (labels.ContainsKey(props[i].name)) displayName = labels[props[i].name];
 
-                //Check for locale
-                if (Locale != null)
-                {
-                    if (displayName.StartsWith("locale::", StringComparison.Ordinal))
-                    {
-                        if (Locale.Constains(displayName))
-                        {
-                            displayName = Locale.Get(displayName);
-                        }
-                    }
-                }
                 //extract json data from display name
-                PropertyOptions options = ExtractExtraOptionsFromDisplayName(ref displayName);
+                string optionsRaw = SplitOptionsFromDisplayName(ref displayName);
 
-                int offset = options.offset + headerCount;
+                displayName = Locale.Get(props[i], displayName);
+
+                int offset = headerCount;
 
                 DrawingData.ResetLastDrawerData();
-                Editor.GetPropertyHeight(props[i]);
 
-                ThryPropertyType type = GetPropertyType(props[i], options);
+                ThryPropertyType type = GetPropertyType(props[i]);
                 switch (type)
                 {
-                    case ThryPropertyType.header:
-                        headerStack.Pop();
-                        break;
                     case ThryPropertyType.legacy_header:
                         headerStack.Pop();
                         break;
-                    case ThryPropertyType.headerWithEnd:
                     case ThryPropertyType.legacy_header_start:
-                        offset = options.offset + ++headerCount;
+                        offset = ++headerCount;
                         break;
                     case ThryPropertyType.legacy_header_end:
                         headerStack.Pop();
                         headerCount--;
                         break;
                     case ThryPropertyType.on_swap_to:
-                        _onSwapToActions = options.actions;
+                        _onSwapToActions = PropertyOptions.Deserialize(optionsRaw).actions;
                         break;
                 }
                 ShaderProperty NewProperty = null;
@@ -272,22 +274,20 @@ namespace Thry
                 switch (type)
                 {
                     case ThryPropertyType.master_label:
-                        _shaderHeader = new ShaderHeaderProperty(this, props[i], displayName, 0, options, false);
+                        _shaderHeader = new ShaderHeaderProperty(this, props[i], displayName, 0, optionsRaw, false);
                         break;
                     case ThryPropertyType.footer:
-                        _footers.Add(new FooterButton(Parser.ParseToObject<ButtonData>(displayName)));
+                        _footers.Add(new FooterButton(Parser.Deserialize<ButtonData>(displayName)));
                         break;
-                    case ThryPropertyType.header:
-                    case ThryPropertyType.headerWithEnd:
                     case ThryPropertyType.legacy_header:
                     case ThryPropertyType.legacy_header_start:
-                        ShaderHeader newHeader = new ShaderHeader(this, props[i], Editor, displayName, offset, options);
+                        ShaderHeader newHeader = new ShaderHeader(this, props[i], Editor, displayName, offset, optionsRaw);
                         headerStack.Peek().addPart(newHeader);
                         headerStack.Push(newHeader);
                         newPart = newHeader;
                         break;
                     case ThryPropertyType.group_start:
-                        ShaderGroup new_group = new ShaderGroup(this, options);
+                        ShaderGroup new_group = new ShaderGroup(this, optionsRaw);
                         headerStack.Peek().addPart(new_group);
                         headerStack.Push(new_group);
                         newPart = new_group;
@@ -298,23 +298,24 @@ namespace Thry
                     case ThryPropertyType.none:
                     case ThryPropertyType.property:
                         if (props[i].type == MaterialProperty.PropType.Texture)
-                            NewProperty = new TextureProperty(this, props[i], displayName, offset, options, props[i].flags.HasFlag(MaterialProperty.PropFlags.NoScaleOffset) == false, !DrawingData.LastPropertyUsedCustomDrawer, i);
+                            NewProperty = new TextureProperty(this, props[i], displayName, offset, optionsRaw, props[i].flags.HasFlag(MaterialProperty.PropFlags.NoScaleOffset) == false, false, i);
                         else
-                            NewProperty = new ShaderProperty(this, props[i], displayName, offset, options, false, i);
+                            NewProperty = new ShaderProperty(this, props[i], displayName, offset, optionsRaw, false, i);
                         break;
                     case ThryPropertyType.lightmap_flags:
-                        NewProperty = new GIProperty(this, props[i], displayName, offset, options, false);
+                        NewProperty = new GIProperty(this, props[i], displayName, offset, optionsRaw, false);
                         break;
                     case ThryPropertyType.dsgi:
-                        NewProperty = new DSGIProperty(this, props[i], displayName, offset, options, false);
+                        NewProperty = new DSGIProperty(this, props[i], displayName, offset, optionsRaw, false);
                         break;
                     case ThryPropertyType.instancing:
-                        NewProperty = new InstancingProperty(this, props[i], displayName, offset, options, false);
+                        NewProperty = new InstancingProperty(this, props[i], displayName, offset, optionsRaw, false);
                         break;
                     case ThryPropertyType.locale:
-                        NewProperty = new LocaleProperty(this, props[i], displayName, offset, options, false);
+                        NewProperty = new LocaleProperty(this, props[i], displayName, offset, optionsRaw, false);
                         break;
                     case ThryPropertyType.shader_version:
+                        PropertyOptions options = PropertyOptions.Deserialize(optionsRaw);
                         _shaderVersionRemote = new Version(WebHelper.GetCachedString(options.remote_version_url));
                         _shaderVersionLocal = new Version(displayName);
                         _isShaderUpToDate = _shaderVersionLocal >= _shaderVersionRemote;
@@ -326,7 +327,10 @@ namespace Thry
                 {
                     newPart = NewProperty;
                     if (PropertyDictionary.ContainsKey(props[i].name))
+                    {
+                        duplicateProperties.Add(props[i].name);
                         continue;
+                    }
                     PropertyDictionary.Add(props[i].name, NewProperty);
                     if (type != ThryPropertyType.none)
                         headerStack.Peek().addPart(NewProperty);
@@ -342,6 +346,9 @@ namespace Thry
                     ShaderParts.Add(newPart);
                 }
             }
+
+            if(duplicateProperties.Count > 0 && Config.Singleton.enableDeveloperMode)
+                _duplicatePropertyNamesString = string.Join(", ", duplicateProperties.ToArray());
 
             DrawingData.IsCollectingProperties = false;
         }
@@ -371,6 +378,7 @@ namespace Thry
             Shader = Materials[0].shader;
 
             RenamedPropertySuffix = ShaderOptimizer.GetRenamedPropertySuffix(Materials[0]);
+            HasCustomRenameSuffix = ShaderOptimizer.HasCustomRenameSuffix(Materials[0]);
 
             IsPresetEditor = Materials.Length == 1 && Presets.ArePreset(Materials);
 
@@ -389,6 +397,19 @@ namespace Thry
             ShaderParts.Add(_vRCFallbackProperty);
 
             AddResetProperty();
+
+            bool setForceAsyncCompilationPreview = SessionState.GetBool("ThrySetForceAsyncCompilationPreview", false);
+
+            if(Config.Singleton.forceAsyncCompilationPreview && !setForceAsyncCompilationPreview)
+            {
+                SessionState.SetBool("ThrySetForceAsyncCompilationPreview", true);
+                ShaderUtil.allowAsyncCompilation = true;
+            }
+            else if(setForceAsyncCompilationPreview)
+            {
+                SessionState.SetBool("ThrySetForceAsyncCompilationPreview", false);
+                ShaderUtil.allowAsyncCompilation = false;
+            }
 
             _isFirstOnGUICall = false;
         }
@@ -411,10 +432,13 @@ namespace Thry
         {
             if (Materials[0].HasProperty(PROPERTY_NAME_EDITOR_DETECT) == false)
             {
-                EditorChanger.AddThryProperty(Materials[0].shader);
+                string path = AssetDatabase.GetAssetPath(Materials[0].shader);
+                UnityHelper.AddShaderPropertyToSourceCode(path, "[HideInInspector] shader_is_using_thry_editor(\"\", Float)", "0");
             }
             Materials[0].SetFloat(PROPERTY_NAME_EDITOR_DETECT, 69);
         }
+
+        
 
         public override void OnClosed(Material material)
         {
@@ -464,6 +488,7 @@ namespace Thry
             Active = this;
 
             GUIManualReloadButton();
+            GUIDevloperMode();
             GUIShaderVersioning();
 
             GUITopBar();
@@ -501,6 +526,18 @@ namespace Thry
             }
         }
 
+        private void GUIDevloperMode()
+        {
+            if (Config.Singleton.enableDeveloperMode)
+            {
+                // Show duplicate property names
+                if(_duplicatePropertyNamesString != null)
+                {
+                    EditorGUILayout.HelpBox("Duplicate Property Names:" + _duplicatePropertyNamesString, MessageType.Warning);
+                }
+            }
+        }
+
         private void GUIShaderVersioning()
         {
             if (!_isShaderUpToDate)
@@ -530,7 +567,10 @@ namespace Thry
                 DoShowSearchBar = !DoShowSearchBar;
                 if(!DoShowSearchBar) ClearSearch();
             }
-            Presets.PresetGUI(this);
+            if (GuiHelper.ButtonWithCursor(Styles.icon_style_presets, "Presets" , 25, 25))
+            {
+                Presets.OpenPresetsMenu(GUILayoutUtility.GetLastRect(), this);
+            }
 
             //draw master label text after ui elements, so it can be positioned between
             if (_shaderHeader != null && !drawAboveToolbar) _shaderHeader.Draw(new CRect(mainHeaderRect));
@@ -735,6 +775,8 @@ namespace Thry
             this._didSwapToShader = true;
             this._doReloadNextDraw = true;
             this.Repaint();
+            ThryWideEnumDrawer.Reload();
+            ThryRGBAPackerDrawer.Reload();
         }
 
         public static void ReloadActive()
@@ -766,18 +808,51 @@ namespace Thry
         [MenuItem("Thry/Shader Tools/Fix Keywords (Very Slow)", priority = -20)]
         static void FixKeywords()
         {
-            IEnumerable<Material> materials = AssetDatabase.FindAssets("t:material").Select(g => AssetDatabase.GUIDToAssetPath(g)).Where(p => string.IsNullOrEmpty(p) == false)
-                .Select(p => AssetDatabase.LoadAssetAtPath<Material>(p)).Where(m => m != null && m.shader != null)
-                .Where(m => ShaderOptimizer.IsMaterialLocked(m) == false && ShaderHelper.IsShaderUsingThryShaderEditor(m.shader));
             float f = 0;
-            int count = materials.Count();
+            IEnumerable<Material> allMaterials = AssetDatabase.FindAssets("t:material")
+                .Select(g => AssetDatabase.GUIDToAssetPath(g))
+                .Where(p => string.IsNullOrEmpty(p) == false)
+                .Select(p => AssetDatabase.LoadAssetAtPath<Material>(p))
+                .Where(m => m != null && m.shader != null)
+                .Where(m => ShaderOptimizer.IsMaterialLocked(m) == false);
+            // Process Shaders
+            EditorUtility.DisplayProgressBar("Fixing Keywords", "Processing Shaders", 0);
+            IEnumerable<Material> uniqueShadersMaterials = allMaterials.GroupBy(m => m.shader).Select(g => g.First());
+            IEnumerable<Shader> shadersWithThryEditor = uniqueShadersMaterials.Where(m => ShaderHelper.IsShaderUsingThryEditor(m)).Select(m => m.shader);
+            Dictionary<Shader, List<(string prop, string keyword)>> propertiesWithKeywords = new Dictionary<Shader, List<(string prop, string keyword)>>();
+            int count = shadersWithThryEditor.Count();
+            foreach (Shader s in shadersWithThryEditor)
+            {
+                EditorUtility.DisplayProgressBar("Fixing Keywords", "Processing Shaders", f++ / count);
+                List<(string prop, string keyword)> propertiesWithKeywordsForShader = new List<(string prop, string keyword)>();
+                for (int i = 0; i < s.GetPropertyCount(); i++)
+                {
+                    if (s.GetPropertyType(i) == UnityEngine.Rendering.ShaderPropertyType.Float)
+                    {
+                        string prop = s.GetPropertyName(i);
+                        string keyword = null;
+                        ShaderHelper.GetTogglePropertyDrawer(s, prop, out keyword);
+                        if(string.IsNullOrWhiteSpace(keyword) == false)
+                            propertiesWithKeywordsForShader.Add((prop, keyword));
+                    }
+                }
+                propertiesWithKeywords.Add(s, propertiesWithKeywordsForShader);
+            }
+            // Find Materials
+            IEnumerable<Material> materials = allMaterials.Where(m => propertiesWithKeywords.ContainsKey(m.shader));
+            // Set Keywords
+            f = 0;
+            count = materials.Count();
             foreach(Material m in materials)
             {
-                for(int i= 0;i< m.shader.GetPropertyCount(); i++){
-                    if (m.shader.GetPropertyType(i) == UnityEngine.Rendering.ShaderPropertyType.Float)
-                    {
-                        ShaderHelper.EnableDisableKeywordsBasedOnTheirFloatValue(new Material[] { m }, m.shader, m.shader.GetPropertyName(i));
-                    }
+                Material[] mats = new Material[] { m };
+                List<(string prop, string keyword)> propertiesWithKeywordsForShader = propertiesWithKeywords[m.shader];
+                foreach((string prop, string keyword) in propertiesWithKeywordsForShader)
+                {
+                    if (m.GetFloat(prop) == 1)
+                        m.EnableKeyword(keyword);
+                    else
+                        m.DisableKeyword(keyword);
                 }
                 EditorUtility.DisplayProgressBar("Fixing Keywords", m.name, f++ / count);
             }
@@ -802,16 +877,34 @@ namespace Thry
             ShaderOptimizer.UpgradeAnimatedPropertiesToTagsOnAllMaterials();
         }
 
-        [MenuItem("Thry/ShaderUI/Use Thry Editor for other shaders", priority = 0)]
-        static void MenuShaderUIAddToShaders()
-        {
-            EditorWindow.GetWindow<EditorChanger>(false, "UI Changer", true);
-        }
-
-        [MenuItem("Thry/Shader Optimizer/Unlocked Materials List", priority = 0)]
+        [MenuItem("Thry/Shader Optimizer/Materials List", priority = 0)]
         static void MenuShaderOptUnlockedMaterials()
         {
-            EditorWindow.GetWindow<UnlockedMaterialsList>(false, "Unlocked Materials", true);
+            EditorWindow.GetWindow<UnlockedMaterialsList>(false, "Materials", true);
+        }
+
+        [MenuItem("Assets/Thry/Materials/Cleaner/List Unbound Properties", priority = 303)]
+        static void AssetsCleanMaterials_ListUnboundProperties()
+        {
+            IEnumerable<Material> materials = Selection.objects.Where(o => o is Material).Select(o => o as Material);
+            foreach (Material m in materials)
+            {
+                Debug.Log("_______Unbound Properties for " + m.name + "_______");
+                MaterialCleaner.ListUnusedProperties(MaterialCleaner.CleanPropertyType.Texture, m);
+                MaterialCleaner.ListUnusedProperties(MaterialCleaner.CleanPropertyType.Color, m);
+                MaterialCleaner.ListUnusedProperties(MaterialCleaner.CleanPropertyType.Float, m);
+            }
+        }
+
+        [MenuItem("Assets/Thry/Materials/Cleaner/Remove Unbound Textures", priority = 303)]
+        static void AssetsCleanMaterials_CleanUnboundTextures()
+        {
+            IEnumerable<Material> materials = Selection.objects.Where(o => o is Material).Select(o => o as Material);
+            foreach (Material m in materials)
+            {
+                Debug.Log("_______Removing Unbound Textures for " + m.name + "_______");
+                MaterialCleaner.RemoveAllUnusedProperties(MaterialCleaner.CleanPropertyType.Texture, m);
+            }
         }
     }
 }
