@@ -15,7 +15,9 @@ Material:
   m_DoubleSidedGI: 0
   m_CustomRenderQueue: 2010
   stringTagMap:
+    AllLockedGUIDS: 282a81a924f589448b30af00930f9a1c
     OptimizedShaderFolder: Body
+    OriginalKeywords: MOCHIE_PBR VIGNETTE_MASKED
     OriginalShader: .poiyomi/Poiyomi 8.0/Poiyomi Toon
     RenderType: Opaque
     VRCFallback: Toon
@@ -1722,6 +1724,8 @@ Material:
     - _Set_HighColorMaskUV: 0
     - _ShadeColor_Step: 0
     - _ShaderOptimizerEnabled: 1
+    - _ShaderUIWarning0: -0
+    - _ShaderUIWarning1: -0
     - _ShadingEnabled: 1
     - _ShadingShadeMapBlendType: 0
     - _Shadow2ndBlur: 0.3

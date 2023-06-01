@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: Dick Tan SPP V4
-  m_Shader: {fileID: 4800000, guid: 5ed4add6a37349b4d8c6e555d41ce80a, type: 3}
+  m_Shader: {fileID: 4800000, guid: 0f585d8744cb6c647b644a940776ef2f, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -426,7 +426,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _RimTex:
-        m_Texture: {fileID: 2800000, guid: 0bef85ca7b6cc134dae5127575f334aa, type: 3}
+        m_Texture: {fileID: 2800000, guid: c975c4aa32be26c44bcfd37c1547290a, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _RimWidthNoiseTexture:
@@ -2426,7 +2426,7 @@ Material:
     - _ClearCoatTint: {r: 1, g: 1, b: 1, a: 1}
     - _ClearcoatMapPan: {r: 0, g: 0, b: 0, a: 0}
     - _ClippingMaskPan: {r: 0, g: 0, b: 0, a: 0}
-    - _Color: {r: 0.4431373, g: 0.5254902, b: 0.5803922, a: 1}
+    - _Color: {r: 0.4431373, g: 0.52156866, b: 0.5803922, a: 1}
     - _DecalColor: {r: 1, g: 1, b: 1, a: 1}
     - _DecalColor1: {r: 1, g: 1, b: 1, a: 1}
     - _DecalColor2: {r: 1, g: 1, b: 1, a: 1}
@@ -2560,7 +2560,7 @@ Material:
     - _RgbNormalGPan: {r: 0, g: 0, b: 0, a: 0}
     - _RgbNormalRPan: {r: 0, g: 0, b: 0, a: 0}
     - _RimEnviroMaskPan: {r: 0, g: 0, b: 0, a: 0}
-    - _RimLightColor: {r: 0.4431373, g: 0.5176471, b: 0.5803922, a: 1}
+    - _RimLightColor: {r: 0.4431373, g: 0.5254902, b: 0.5803922, a: 1}
     - _RimMaskPan: {r: 0, g: 0, b: 0, a: 0}
     - _RimTexPan: {r: 0, g: 0, b: 0, a: 0}
     - _RimTexPanSpeed: {r: 0, g: 0, b: 0, a: 0}

@@ -10,6 +10,8 @@
     "com.unity.ugui": "1.0.0",
     "com.unity.xr.oculus.standalone": "2.38.4",
     "com.unity.xr.openvr.standalone": "2.0.5",
+    "org.furality.sdk": "file:com.furality.sdk-1.2.4.tgz",
+    "org.furality.updater": "file:com.furality.updater-1.0.3.tgz",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",

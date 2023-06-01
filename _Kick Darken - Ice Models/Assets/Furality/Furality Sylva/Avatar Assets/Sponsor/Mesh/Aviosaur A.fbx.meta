@@ -1,0 +1,199 @@
+fileFormatVersion: 2
+guid: b9f0084175713da4ca881a7f99c0da19
+ModelImporter:
+  serializedVersion: 19301
+  internalIDToNameTable:
+  - first:
+      74: 6429300477533277373
+    second: Armature|Aviousaur A Sitting
+  - first:
+      74: 9043007330095004361
+    second: Armature|Aviousaur A Sitting.001
+  - first:
+      74: 4167191997465354087
+    second: Armature|Basis Pose
+  - first:
+      74: -5461497834387947493
+    second: Armature|Close Wings
+  - first:
+      74: 4737658895529364708
+    second: Armature|Idle Animation A
+  - first:
+      74: -5087492285100608407
+    second: Armature|Idle Animation B
+  - first:
+      74: 2713562981911926543
+    second: Armature|Idle Look Animation
+  - first:
+      74: -1096807875960460387
+    second: Armature|Wings Closed
+  - first:
+      74: 2190228938194974625
+    second: Armature|Aviousaur A Sitting.002
+  - first:
+      74: 5271689001524154817
+    second: Armature|Aviosaur_Small_Chirp_Idle A
+  - first:
+      74: -6322551072728060105
+    second: Armature|Aviosaur_Small_Chirp_Idle B
+  - first:
+      74: -1191271998893266884
+    second: Armature|Aviosaur_Small_Chirp_Idle C
+  - first:
+      74: -1812865246852218107
+    second: Armature|Aviosaur_Small_Close_1
+  - first:
+      74: 461538756493832230
+    second: Armature|Aviosaur_Small_Close_2
+  - first:
+      74: 3796977373090258456
+    second: Armature|Aviosaur_Small_Close_3
+  - first:
+      74: -6488633484462381219
+    second: Armature|BreathingIdleAnimation
+  - first:
+      74: 6795330727515591339
+    second: Armature|BreathingIdleAnimation.001
+  - first:
+      74: -4674444867073023336
+    second: Armature|IdleAnimation1
+  - first:
+      74: -2409285361221375949
+    second: Armature|IdleAnimation2
+  - first:
+      74: 5138880996953852682
+    second: Armature|IdleAnimation3
+  - first:
+      74: -522711642284329276
+    second: Armature|BreathingIdleAnimation.002
+  - first:
+      74: 620903222903908598
+    second: Armature|BreathingIdleAnimation.003
+  - first:
+      74: 6365085840066163006
+    second: Aviosaur A.001|BreathingIdleAnimation
+  - first:
+      74: 1507251857534291901
+    second: Aviosaur A.001|BreathingIdleAnimation.001
+  - first:
+      74: 3829368462552209000
+    second: Aviosaur A.001|BreathingIdleAnimation.002
+  - first:
+      74: 6098197833347817289
+    second: Aviosaur A.001|BreathingIdleAnimation.003
+  - first:
+      74: 501990181470464549
+    second: Armature|BreathingIdleAnimation.004
+  - first:
+      74: 8922738593693337637
+    second: Armature|BreathingIdleAnimation.005
+  - first:
+      74: -8211198166338463603
+    second: Aviosaur A.001|BreathingIdleAnimation.004
+  - first:
+      74: -2529112711824149536
+    second: Aviosaur A.001|BreathingIdleAnimation.005
+  - first:
+      74: 965414175961878015
+    second: Aviosaur A|BreathingIdleAnimation
+  - first:
+      74: 5346000340918388586
+    second: Aviosaur A|BreathingIdleAnimation.001
+  - first:
+      74: 7384639471036493413
+    second: Aviosaur A|BreathingIdleAnimation.002
+  - first:
+      74: 6033762320443065240
+    second: Armature|IdleAnimationLong
+  externalObjects: {}
+  materials:
+    materialImportMode: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 1
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: Armature
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -56,7 +56,7 @@ MonoBehaviour:
     subMenu: {fileID: 0}
     subParameters: []
     labels: []
-  - name: DPS Toggles
+  - name: DPS
     icon: {fileID: 0}
     type: 103
     parameter:

@@ -1,0 +1,38 @@
+Aviosaur Asset - Sponsor Tier Read Me
+
+Overview:
+
+Thank you for choosing Sponsor Tier for Furality! This read me file is for the Sponsor tier Aviosaur asset provides step-by-step instructions on how to edit the existing "Pose" animation in Unity using the Animation Controller for the Aviosaur asset. By following these instructions, you'll be able to customize the Aviosaur's pose while keeping its idle animation unaffected. Let's get started!
+
+
+Placing the Aviosaur:
+
+1. Position the Aviosaur where you would like on your avatar.
+
+2.  Drag the Aviosaur preset to the nearest bone from it's position under your avatar's armature to parent the Aviosaur to that bone.
+
+
+Editing the Pose Animation:
+
+1. Enter Play Mode by clicking the "Play" button located at the top center of the Unity Editor.
+
+2. Open the Animation window by navigating to "Window" -> "Animation" -> "Animation".
+
+3. In the Hierarchy window, locate and select the Aviosaur object.
+    Within the Animation window, you will find the Aviosaur's animations listed in the Animation menu at the top.
+
+4. Expand the Animation menu and find the "Pose" animation in the dropdown list.
+
+5. Select the "Pose" animation from the dropdown list in the Animation menu.
+
+6. Click the "Record" button in the Animation window to enable recording mode.
+
+7. You can now modify the Aviosaur's pose by manipulating its bones or transforms using the Scene view or the Animation window's tools and options.
+
+8. Once you are satisfied with the pose modifications, exit Play Mode by clicking the "Play" button again.
+
+9. To test the animation and observe the Aviosaur in the new pose, re-enter Play Mode.
+
+Optional:
+
+Included is a sitting animation that you can swap out for the Pose Here animation in the aviosaur's animation controller (Aviosaur Sponsor idle in the Controllers folder) to including the bird to be sitting. Just make sure to only pose on the last frame of the sitting animation if you wish to pose the Aviosaur with the sitting animation.

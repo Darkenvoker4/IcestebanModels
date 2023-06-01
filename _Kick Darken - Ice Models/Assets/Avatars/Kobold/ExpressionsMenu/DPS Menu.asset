@@ -14,11 +14,61 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   controls:
   - name: R.Hand DPS
-    icon: {fileID: 0}
+    icon: {fileID: 2800000, guid: f414d654b0065e2429e0e25ab5108b06, type: 3}
     type: 102
     parameter:
       name: DPS Toggles
     value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: L.Hand DPS
+    icon: {fileID: 2800000, guid: f414d654b0065e2429e0e25ab5108b06, type: 3}
+    type: 102
+    parameter:
+      name: DPS Toggles
+    value: 2
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: R.Foot DPS
+    icon: {fileID: 2800000, guid: e2c2b7f67d88a2548aeb063e09bb5214, type: 3}
+    type: 102
+    parameter:
+      name: DPS Toggles
+    value: 3
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: L.Foot DPS
+    icon: {fileID: 2800000, guid: e2c2b7f67d88a2548aeb063e09bb5214, type: 3}
+    type: 102
+    parameter:
+      name: DPS Toggles
+    value: 4
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Mouth DPS
+    icon: {fileID: 2800000, guid: 437cc4e31d2d16a488d0dcf8935acb53, type: 3}
+    type: 102
+    parameter:
+      name: DPS Toggles
+    value: 5
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Butt DPS
+    icon: {fileID: 2800000, guid: 0cb4d487e99fd2848bbbdbbfc1507174, type: 3}
+    type: 102
+    parameter:
+      name: DPS Toggles
+    value: 6
     style: 0
     subMenu: {fileID: 0}
     subParameters: []

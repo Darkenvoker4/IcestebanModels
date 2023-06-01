@@ -1,5 +1,11 @@
 {
   "dependencies": {
+    "com.furality.sylvashader": {
+      "version": "file:com.furality.sylvashader",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.llealloo.audiolink": {
       "version": "file:com.llealloo.audiolink",
       "depth": 0,
@@ -151,6 +157,18 @@
       "version": "file:dev.vrlabs.av3manager",
       "depth": 0,
       "source": "embedded",
+      "dependencies": {}
+    },
+    "org.furality.sdk": {
+      "version": "file:com.furality.sdk-1.2.4.tgz",
+      "depth": 0,
+      "source": "local-tarball",
+      "dependencies": {}
+    },
+    "org.furality.updater": {
+      "version": "file:com.furality.updater-1.0.3.tgz",
+      "depth": 0,
+      "source": "local-tarball",
       "dependencies": {}
     },
     "vrchat.blackstartx.gesture-manager": {
